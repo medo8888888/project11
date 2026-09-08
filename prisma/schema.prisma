@@ -1,0 +1,124 @@
+// Project Approval & SLA Routing System — data model
+// Postgres via Prisma. See README.md for the workflow this schema drives.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PM
+  ENGINEER
+}
+
+enum Discipline {
+  MECHANICAL
+  FIRE_SAFETY
+  ALL
+}
+
+enum ProjectStatus {
+  SUBMITTED
+  PM_REVIEW
+  WAITING
+  IN_PROGRESS
+  APPROVED
+}
+
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ReviewPriority {
+  NORMAL
+  HIGH_PRIORITY
+}
+
+model User {
+  id         String     @id @default(cuid())
+  name       String
+  email      String     @unique
+  phone      String?
+  role       Role
+  // Which discipline this user reviews as an ENGINEER; irrelevant for PMs.
+  discipline Discipline @default(ALL)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  projectsManaged  Project[]         @relation("ProjectPM")
+  reviewsAssigned  DisciplineReview[] @relation("ReviewEngineer")
+  magicTokens      MagicToken[]
+
+  @@index([role, discipline])
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  title       String
+  description String
+  status      ProjectStatus @default(SUBMITTED)
+  pmId        String
+  pm          User          @relation("ProjectPM", fields: [pmId], references: [id])
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  disciplineReviews DisciplineReview[]
+  magicTokens       MagicToken[]
+
+  @@index([status])
+  @@index([pmId])
+}
+
+model DisciplineReview {
+  id        String         @id @default(cuid())
+  projectId String
+  project   Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  discipline Discipline    // MECHANICAL | FIRE_SAFETY (ALL is not a valid review discipline)
+  reviewerId String?
+  reviewer   User?         @relation("ReviewEngineer", fields: [reviewerId], references: [id])
+
+  status         ReviewStatus   @default(PENDING)
+  priority       ReviewPriority @default(NORMAL)
+  comments       String?
+
+  // SLA tracking: reset whenever the review (re)enters PENDING while the
+  // project is WAITING on it. The cron engine measures elapsed time from here.
+  lastStatusChangeAt DateTime @default(now())
+  nudge2hSent        Boolean  @default(false)
+  escalation2dSent   Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  magicTokens MagicToken[]
+
+  @@index([status, discipline])
+  @@index([projectId])
+}
+
+model MagicToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  projectId String
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  // Optional: link straight to the discipline review this token was minted for.
+  reviewId String?
+  review   DisciplineReview? @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([expiresAt])
+}

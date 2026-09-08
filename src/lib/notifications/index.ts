@@ -1,0 +1,55 @@
+import { sendEmail } from "./email";
+import { sendWhatsApp } from "./whatsapp";
+
+export { sendEmail, sendWhatsApp };
+
+type Recipient = { name: string; email: string; phone?: string | null };
+
+/**
+ * Fires both channels in parallel and never lets one failure block the other —
+ * SLA reminders are best-effort delivery, not a transaction.
+ */
+export async function notify(recipient: Recipient, subject: string, htmlBody: string, textBody: string) {
+  const results = await Promise.allSettled([
+    sendEmail(recipient.email, subject, htmlBody),
+    recipient.phone ? sendWhatsApp(recipient.phone, textBody) : Promise.resolve(null),
+  ]);
+
+  results.forEach((r, i) => {
+    if (r.status === "rejected") {
+      const channel = i === 0 ? "email" : "whatsapp";
+      console.error(`[notify] ${channel} failed for ${recipient.email}:`, r.reason);
+    }
+  });
+
+  return results;
+}
+
+export function nudgeMessage(projectTitle: string, projectId: string, url: string) {
+  return {
+    subject: `Action needed: Project #${projectId} awaiting your review`,
+    text: `Project #${projectId} (${projectTitle}) is awaiting your review. Click link to access: ${url}`,
+    html: `<p>Project <strong>#${projectId} — ${escapeHtml(projectTitle)}</strong> is awaiting your review.</p>
+<p><a href="${url}">Click here to review</a></p>`,
+  };
+}
+
+export function escalationMessage(projectTitle: string, projectId: string, url: string, discipline: string) {
+  return {
+    subject: `OVERDUE: Project #${projectId} needs immediate attention`,
+    text: `URGENT: Project #${projectId} (${projectTitle}) — ${discipline} review is now OVERDUE (2+ days pending). Please act now: ${url}`,
+    html: `<p style="color:#b91c1c;font-weight:bold;">URGENT — OVERDUE REVIEW</p>
+<p>Project <strong>#${projectId} — ${escapeHtml(projectTitle)}</strong>: the ${escapeHtml(
+      discipline
+    )} review has been pending for 2+ days.</p>
+<p><a href="${url}">Review now</a></p>`,
+  };
+}
+
+function escapeHtml(s: string) {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
