@@ -35,21 +35,21 @@ export async function notify(recipient: Recipient, subject: string, htmlBody: st
   return results;
 }
 
-export function nudgeMessage(projectTitle: string, projectId: string, url: string) {
+export function nudgeMessage(projectTitle: string, projectCode: string, url: string) {
   return {
-    subject: `Action needed: Project #${projectId} awaiting your review`,
-    text: `Project #${projectId} (${projectTitle}) is awaiting your review. Click link to access: ${url}`,
-    html: `<p>Project <strong>#${projectId} — ${escapeHtml(projectTitle)}</strong> is awaiting your review.</p>
+    subject: `Action needed: Project ${projectCode} awaiting your review`,
+    text: `Project ${projectCode} (${projectTitle}) is awaiting your review. Click link to access: ${url}`,
+    html: `<p>Project <strong>${projectCode} — ${escapeHtml(projectTitle)}</strong> is awaiting your review.</p>
 <p><a href="${url}">Click here to review</a></p>`,
   };
 }
 
-export function escalationMessage(projectTitle: string, projectId: string, url: string, discipline: string) {
+export function escalationMessage(projectTitle: string, projectCode: string, url: string, discipline: string) {
   return {
-    subject: `OVERDUE: Project #${projectId} needs immediate attention`,
-    text: `URGENT: Project #${projectId} (${projectTitle}) — ${discipline} review is now OVERDUE (2+ days pending). Please act now: ${url}`,
+    subject: `OVERDUE: Project ${projectCode} needs immediate attention`,
+    text: `URGENT: Project ${projectCode} (${projectTitle}) — ${discipline} review is now OVERDUE (2+ days pending). Please act now: ${url}`,
     html: `<p style="color:#b91c1c;font-weight:bold;">URGENT — OVERDUE REVIEW</p>
-<p>Project <strong>#${projectId} — ${escapeHtml(projectTitle)}</strong>: the ${escapeHtml(
+<p>Project <strong>${projectCode} — ${escapeHtml(projectTitle)}</strong>: the ${escapeHtml(
       discipline
     )} review has been pending for 2+ days.</p>
 <p><a href="${url}">Review now</a></p>`,

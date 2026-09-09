@@ -1,0 +1,99 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Bright</title>
+    <style>
+      :root { color-scheme: light; }
+      body {
+        width: 280px;
+        margin: 0;
+        padding: 16px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+        background: #ffffff;
+        color: #111827;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .mark {
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        background: linear-gradient(135deg, #4f46e5 0%, #818cf8 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 12px;
+        font-weight: 700;
+      }
+      p.hint {
+        margin: 0 0 10px;
+        font-size: 12px;
+        color: #6b7280;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+      input:focus {
+        outline: none;
+        border-color: #6366f1;
+        box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.15);
+      }
+      button {
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: 8px;
+        background: #4f46e5;
+        color: white;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+      }
+      button:hover {
+        background: #4338ca;
+      }
+      .footer {
+        margin-top: 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      .footer a {
+        font-size: 11px;
+        color: #9ca3af;
+        text-decoration: none;
+      }
+      .footer a:hover {
+        color: #6b7280;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="brand"><span class="mark">B</span>Bright</div>
+    <p class="hint">Paste a project code from an email or WhatsApp message.</p>
+    <form id="form">
+      <input id="code" type="text" placeholder="P000042" autofocus autocomplete="off" />
+      <button type="submit">Open project</button>
+    </form>
+    <div class="footer">
+      <span></span>
+      <a href="#" id="options-link">Settings</a>
+    </div>
+    <script src="shared.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

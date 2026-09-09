@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createMagicToken, magicLinkUrl } from "@/lib/magicToken";
 import { notify, nudgeMessage } from "@/lib/notifications";
 import { logActivity } from "@/lib/activity";
-import { DISCIPLINE_LABEL } from "@/lib/labels";
+import { DISCIPLINE_LABEL, formatProjectCode } from "@/lib/labels";
 import type { Discipline, Project, ProjectStatus } from "@prisma/client";
 
 /**
@@ -184,7 +184,7 @@ export async function notifyReviewerAssigned(reviewId: string) {
 
   const token = await createMagicToken(review.reviewer.id, review.projectId, review.id);
   const url = magicLinkUrl(token);
-  const msg = nudgeMessage(review.project.title, review.projectId, url);
+  const msg = nudgeMessage(review.project.title, formatProjectCode(review.project.seq), url);
   await notify(review.reviewer, msg.subject, msg.html, msg.text);
 }
 

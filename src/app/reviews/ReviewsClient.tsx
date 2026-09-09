@@ -7,6 +7,7 @@ import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 import { SlaTimer } from "@/components/SlaTimer";
 import { ReviewActions } from "@/components/ReviewActions";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ProjectCode } from "@/components/ProjectCode";
 
 type Review = {
   id: string;
@@ -14,7 +15,7 @@ type Review = {
   status: string;
   priority: string;
   lastStatusChangeAt: string;
-  project: { id: string; title: string; status: string };
+  project: { id: string; seq: number; title: string; status: string };
 };
 
 export function ReviewsClient() {
@@ -83,9 +84,12 @@ function ReviewCard({
     <div className="card p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <Link href={`/projects/${r.project.id}`} className="font-medium text-gray-900 hover:text-brand-700">
-            {r.project.title}
-          </Link>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <Link href={`/projects/${r.project.id}`} className="font-medium text-gray-900 hover:text-brand-700">
+              {r.project.title}
+            </Link>
+            <ProjectCode seq={r.project.seq} />
+          </div>
           <p className="text-xs text-gray-500">{r.discipline.replace("_", " ")} review</p>
         </div>
         <div className="flex items-center gap-2">

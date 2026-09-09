@@ -6,6 +6,7 @@ import { LoaderCircle, ArrowRight, Mail } from "lucide-react";
 import { StatusBadge, PriorityBadge } from "@/components/StatusBadge";
 import { SlaTimer } from "@/components/SlaTimer";
 import { Avatar } from "@/components/ui/Avatar";
+import { ProjectCode } from "@/components/ProjectCode";
 import { useToast } from "@/components/ui/Toast";
 import { StatusStepper } from "./StatusStepper";
 import { ActivityFeed, type ActivityEntry } from "./ActivityFeed";
@@ -31,6 +32,7 @@ type Review = {
 
 type ProjectDetail = {
   id: string;
+  seq: number;
   title: string;
   description: string;
   status: string;
@@ -87,6 +89,7 @@ export function ProjectDetailClient({
           <div>
             <div className="mb-1.5 flex flex-wrap items-center gap-2">
               <h1 className="text-xl font-semibold text-gray-900">{current.title}</h1>
+              <ProjectCode seq={current.seq} />
               <StatusBadge status={current.status} />
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500">

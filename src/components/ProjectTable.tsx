@@ -4,6 +4,7 @@ import Link from "next/link";
 import { StatusBadge, PriorityBadge } from "./StatusBadge";
 import { SlaTimer } from "./SlaTimer";
 import { Avatar } from "./ui/Avatar";
+import { ProjectCode } from "./ProjectCode";
 import type { ProjectRow } from "./Kanban";
 
 export function ProjectTable({ projects }: { projects: ProjectRow[] }) {
@@ -28,14 +29,13 @@ export function ProjectTable({ projects }: { projects: ProjectRow[] }) {
             return (
               <tr key={p.id} className="transition-colors hover:bg-gray-50/80">
                 <td className="px-4 py-3">
-                  <Link href={`/projects/${p.id}`} className="font-medium text-gray-900 hover:text-brand-700">
-                    {p.title}
-                  </Link>
-                  {highPriority && (
-                    <span className="ml-2">
-                      <PriorityBadge priority="HIGH_PRIORITY" />
-                    </span>
-                  )}
+                  <div className="flex items-center gap-2">
+                    <Link href={`/projects/${p.id}`} className="font-medium text-gray-900 hover:text-brand-700">
+                      {p.title}
+                    </Link>
+                    <ProjectCode seq={p.seq} />
+                    {highPriority && <PriorityBadge priority="HIGH_PRIORITY" />}
+                  </div>
                 </td>
                 <td className="px-4 py-3 text-gray-600">
                   <div className="flex items-center gap-1.5">

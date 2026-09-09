@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma";
 import { createMagicToken, magicLinkUrl } from "@/lib/magicToken";
 import { notify, nudgeMessage, escalationMessage } from "@/lib/notifications";
 import { logActivity } from "@/lib/activity";
-import { DISCIPLINE_LABEL } from "@/lib/labels";
+import { DISCIPLINE_LABEL, formatProjectCode } from "@/lib/labels";
 
 const TWO_HOURS_MS = 1000 * 60 * 60 * 2;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 24 * 2;
@@ -46,7 +46,7 @@ export async function runSlaCheck(): Promise<SlaRunSummary> {
           review.id
         );
         const url = magicLinkUrl(token);
-        const msg = escalationMessage(review.project.title, review.projectId, url, review.discipline);
+        const msg = escalationMessage(review.project.title, formatProjectCode(review.project.seq), url, review.discipline);
 
         const recipients = [review.reviewer, pm].filter(
           (u): u is NonNullable<typeof u> => Boolean(u)
@@ -72,7 +72,7 @@ export async function runSlaCheck(): Promise<SlaRunSummary> {
         if (review.reviewer) {
           const token = await createMagicToken(review.reviewer.id, review.projectId, review.id);
           const url = magicLinkUrl(token);
-          const msg = nudgeMessage(review.project.title, review.projectId, url);
+          const msg = nudgeMessage(review.project.title, formatProjectCode(review.project.seq), url);
           await notify(review.reviewer, msg.subject, msg.html, msg.text);
         }
         await prisma.disciplineReview.update({

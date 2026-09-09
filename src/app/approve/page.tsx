@@ -6,10 +6,11 @@ import { ClipboardCheck, LoaderCircle, AlertTriangle, CheckCircle2, Wrench, Flam
 import { ReviewActions } from "@/components/ReviewActions";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Avatar } from "@/components/ui/Avatar";
+import { ProjectCode } from "@/components/ProjectCode";
 
 type Resolution = {
   user: { name: string; role: string };
-  project: { id: string; title: string; description: string; status: string };
+  project: { id: string; seq: number; title: string; description: string; status: string };
   review: { id: string; discipline: string; status: string } | null;
 };
 
@@ -85,7 +86,10 @@ function ApprovePageInner() {
                 <Avatar name={data.user.name} size={20} /> Hi {data.user.name},
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">{data.project.title}</h1>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h1 className="text-lg font-semibold text-gray-900">{data.project.title}</h1>
+                  <ProjectCode seq={data.project.seq} />
+                </div>
                 <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
                   {data.project.description}
                 </p>

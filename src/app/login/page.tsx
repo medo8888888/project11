@@ -1,12 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ClipboardCheck, LoaderCircle, ArrowLeft, Workflow, Clock, MessagesSquare } from "lucide-react";
+import { safeRelativePath } from "@/lib/safeRedirect";
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginPageInner />
+    </Suspense>
+  );
+}
+
+function LoginPageInner() {
   const router = useRouter();
+  const params = useSearchParams();
+  const next = safeRelativePath(params.get("next"));
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,8 +37,7 @@ export default function LoginPage() {
       setError(data.error ?? "Login failed");
       return;
     }
-    router.push("/");
-    router.refresh();
+    router.push(next);
   }
 
   return (

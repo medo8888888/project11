@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { ClipboardCheck, LogOut, Menu, X, Users, Settings } from "lucide-react";
 import { useState } from "react";
 import { Avatar } from "@/components/ui/Avatar";
+import { CodeJump } from "@/components/CodeJump";
 
 export function Navbar({ userName, role }: { userName: string; role: string }) {
   const router = useRouter();
@@ -48,9 +49,10 @@ export function Navbar({ userName, role }: { userName: string; role: string }) {
               {l.label}
             </Link>
           ))}
+          <CodeJump className="ml-2 w-40" />
           <Link
             href="/settings"
-            className={`ml-2 rounded-md p-1.5 transition-colors ${
+            className={`ml-1 rounded-md p-1.5 transition-colors ${
               pathname === "/settings" ? "bg-brand-50 text-brand-700" : "text-gray-400 hover:bg-gray-100 hover:text-gray-600"
             }`}
             title="Settings"
@@ -78,6 +80,7 @@ export function Navbar({ userName, role }: { userName: string; role: string }) {
             <Avatar name={userName} size={32} />
             <span className="text-sm font-medium text-gray-700">{userName}</span>
           </div>
+          <CodeJump className="mb-3" />
           <div className="flex flex-col gap-1">
             {links.map((l) => (
               <Link

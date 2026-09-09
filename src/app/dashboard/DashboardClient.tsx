@@ -8,6 +8,7 @@ import { ProjectTable } from "@/components/ProjectTable";
 import { DashboardSkeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { StatTile } from "@/components/ui/StatTile";
+import { formatProjectCode } from "@/lib/labels";
 
 const STATUS_FILTERS = ["ALL", "SUBMITTED", "PM_REVIEW", "WAITING", "IN_PROGRESS", "APPROVED"];
 
@@ -48,7 +49,12 @@ export function DashboardClient() {
     if (statusFilter !== "ALL") list = list.filter((p) => p.status === statusFilter);
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      list = list.filter((p) => p.title.toLowerCase().includes(q) || p.pm.name.toLowerCase().includes(q));
+      list = list.filter(
+        (p) =>
+          p.title.toLowerCase().includes(q) ||
+          p.pm.name.toLowerCase().includes(q) ||
+          formatProjectCode(p.seq).toLowerCase().includes(q)
+      );
     }
     return list;
   }, [projects, statusFilter, query]);
@@ -78,7 +84,7 @@ export function DashboardClient() {
           <input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search projects or PM..."
+            placeholder="Search title, PM, or code..."
             className="input pl-9"
           />
           {query && (

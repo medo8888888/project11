@@ -9,7 +9,7 @@ export async function GET() {
     const user = await requireUser();
     const reviews = await prisma.disciplineReview.findMany({
       where: { reviewerId: user.id },
-      include: { project: { select: { id: true, title: true, status: true } } },
+      include: { project: { select: { id: true, seq: true, title: true, status: true } } },
       orderBy: [{ status: "asc" }, { lastStatusChangeAt: "asc" }],
     });
     return NextResponse.json({ reviews });

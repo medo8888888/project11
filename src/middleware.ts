@@ -12,8 +12,11 @@ export function middleware(req: NextRequest) {
   const hasSession = req.cookies.has("sla_session");
 
   if (!isPublic && !hasSession && pathname !== "/") {
+    const next = `${pathname}${req.nextUrl.search}`;
     const url = req.nextUrl.clone();
     url.pathname = "/login";
+    url.search = "";
+    url.searchParams.set("next", next);
     return NextResponse.redirect(url);
   }
 

@@ -4,9 +4,11 @@ import Link from "next/link";
 import { StatusBadge, PriorityBadge } from "./StatusBadge";
 import { SlaTimer } from "./SlaTimer";
 import { Avatar } from "./ui/Avatar";
+import { ProjectCode } from "./ProjectCode";
 
 export type ProjectRow = {
   id: string;
+  seq: number;
   title: string;
   status: string;
   updatedAt: string;
@@ -70,9 +72,12 @@ function ProjectCard({ project }: { project: ProjectRow }) {
         </h4>
         {highPriority && <PriorityBadge priority="HIGH_PRIORITY" />}
       </div>
-      <div className="mb-2.5 flex items-center gap-1.5 text-xs text-gray-500">
-        <Avatar name={project.pm.name} size={16} />
-        {project.pm.name}
+      <div className="mb-2.5 flex items-center gap-2 text-xs text-gray-500">
+        <span className="flex items-center gap-1.5">
+          <Avatar name={project.pm.name} size={16} />
+          {project.pm.name}
+        </span>
+        <ProjectCode seq={project.seq} />
       </div>
       <div className="flex items-center justify-between">
         <StatusBadge status={project.status} />

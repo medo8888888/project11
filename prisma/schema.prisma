@@ -76,6 +76,10 @@ model User {
 
 model Project {
   id          String        @id @default(cuid())
+  // Short, human-readable reference number (formatted as P + 6 digits by
+  // lib/labels.ts) — what actually gets read aloud, typed into a search box,
+  // or quoted back in an email, since nobody is going to copy a cuid.
+  seq         Int           @unique @default(autoincrement())
   title       String
   description String
   status      ProjectStatus @default(SUBMITTED)
