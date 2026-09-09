@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     return NextResponse.json({ error: "Not authorized to act on this review" }, { status: 401 });
   }
 
-  const updated = await submitDisciplineReview(params.id, decision, comments);
+  const updated = await submitDisciplineReview(params.id, decision, comments, authorizedUserId);
   return NextResponse.json({ review: updated });
 }
 

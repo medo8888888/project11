@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { createMagicToken, magicLinkUrl } from "@/lib/magicToken";
 import { notify, nudgeMessage } from "@/lib/notifications";
+import { logActivity } from "@/lib/activity";
+import { DISCIPLINE_LABEL } from "@/lib/labels";
 import type { Discipline, Project, ProjectStatus } from "@prisma/client";
 
 /**
@@ -23,13 +25,22 @@ const REVIEW_DISCIPLINES: Discipline[] = ["MECHANICAL", "FIRE_SAFETY"];
 
 export async function transitionProjectStatus(
   projectId: string,
-  targetStatus: ProjectStatus
+  targetStatus: ProjectStatus,
+  actorId: string
 ): Promise<Project> {
   return prisma.$transaction(async (tx) => {
     const project = await tx.project.findUniqueOrThrow({ where: { id: projectId } });
 
+    await logActivity(tx, {
+      projectId,
+      type: "STATUS_CHANGE",
+      actorId,
+      message: `Status changed from ${project.status.replace(/_/g, " ")} to ${targetStatus.replace(/_/g, " ")}`,
+    });
+
     if (targetStatus === "APPROVED") {
       const existing = await tx.disciplineReview.findMany({ where: { projectId } });
+      const routed: Discipline[] = [];
       for (const discipline of REVIEW_DISCIPLINES) {
         const already = existing.find((r) => r.discipline === discipline);
         if (!already) {
@@ -43,6 +54,7 @@ export async function transitionProjectStatus(
               lastStatusChangeAt: new Date(),
             },
           });
+          routed.push(discipline);
         } else if (already.status === "REJECTED") {
           // Resubmission cycle: reopen the rejected review for a fresh pass.
           await tx.disciplineReview.update({
@@ -55,7 +67,16 @@ export async function transitionProjectStatus(
               escalation2dSent: false,
             },
           });
+          routed.push(discipline);
         }
+      }
+      if (routed.length > 0) {
+        await logActivity(tx, {
+          projectId,
+          type: "REVIEW_ROUTED",
+          actorId,
+          message: `Routed to ${routed.map((d) => DISCIPLINE_LABEL[d]).join(" + ")} review`,
+        });
       }
       // Not actually "approved" until both disciplines sign off — see header comment.
       const updated = await tx.project.update({ where: { id: projectId }, data: { status: "WAITING" } });
@@ -103,7 +124,8 @@ export type ReviewDecision = "APPROVED" | "REJECTED";
 export async function submitDisciplineReview(
   reviewId: string,
   decision: ReviewDecision,
-  comments: string | undefined
+  comments: string | undefined,
+  actorId: string
 ) {
   return prisma.$transaction(async (tx) => {
     const review = await tx.disciplineReview.update({
@@ -113,6 +135,15 @@ export async function submitDisciplineReview(
         comments,
         lastStatusChangeAt: new Date(),
       },
+    });
+
+    await logActivity(tx, {
+      projectId: review.projectId,
+      type: "REVIEW_DECISION",
+      actorId,
+      message: `${DISCIPLINE_LABEL[review.discipline]} review ${decision === "APPROVED" ? "approved" : "sent back for changes"}${
+        comments ? `: "${comments}"` : ""
+      }`,
     });
 
     await maybeFinalizeProject(tx, review.projectId);
@@ -126,10 +157,20 @@ async function maybeFinalizeProject(tx: PrismaTx, projectId: string) {
 
   if (reviews.some((r) => r.status === "REJECTED")) {
     await tx.project.update({ where: { id: projectId }, data: { status: "IN_PROGRESS" } });
+    await logActivity(tx, {
+      projectId,
+      type: "STATUS_CHANGE",
+      message: "Auto-moved to IN PROGRESS pending rework (a discipline review was rejected)",
+    });
     return;
   }
   if (reviews.every((r) => r.status === "APPROVED")) {
     await tx.project.update({ where: { id: projectId }, data: { status: "APPROVED" } });
+    await logActivity(tx, {
+      projectId,
+      type: "STATUS_CHANGE",
+      message: "Auto-approved — all discipline reviews signed off",
+    });
   }
 }
 

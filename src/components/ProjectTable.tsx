@@ -3,19 +3,22 @@
 import Link from "next/link";
 import { StatusBadge, PriorityBadge } from "./StatusBadge";
 import { SlaTimer } from "./SlaTimer";
+import { Avatar } from "./ui/Avatar";
 import type { ProjectRow } from "./Kanban";
 
 export function ProjectTable({ projects }: { projects: ProjectRow[] }) {
   return (
-    <div className="overflow-x-auto rounded-lg border bg-white">
-      <table className="min-w-full divide-y divide-gray-200 text-sm">
-        <thead className="bg-gray-50">
+    <div className="card overflow-x-auto">
+      <table className="min-w-full divide-y divide-gray-100 text-sm">
+        <thead className="bg-gray-50/80">
           <tr>
-            <th className="px-4 py-2 text-left font-medium text-gray-500">Project</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-500">PM</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-500">Status</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-500">Discipline Reviews</th>
-            <th className="px-4 py-2 text-left font-medium text-gray-500">SLA</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">Project</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">PM</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">Status</th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">
+              Discipline Reviews
+            </th>
+            <th className="px-4 py-2.5 text-left text-xs font-semibold uppercase tracking-wide text-gray-400">SLA</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-100">
@@ -23,18 +26,27 @@ export function ProjectTable({ projects }: { projects: ProjectRow[] }) {
             const pendingReview = p.disciplineReviews.find((r) => r.status === "PENDING");
             const highPriority = p.disciplineReviews.some((r) => r.priority === "HIGH_PRIORITY");
             return (
-              <tr key={p.id} className="hover:bg-gray-50">
-                <td className="px-4 py-2">
-                  <Link href={`/projects/${p.id}`} className="font-medium text-brand-700 hover:underline">
+              <tr key={p.id} className="transition-colors hover:bg-gray-50/80">
+                <td className="px-4 py-3">
+                  <Link href={`/projects/${p.id}`} className="font-medium text-gray-900 hover:text-brand-700">
                     {p.title}
                   </Link>
-                  {highPriority && <span className="ml-2"><PriorityBadge priority="HIGH_PRIORITY" /></span>}
+                  {highPriority && (
+                    <span className="ml-2">
+                      <PriorityBadge priority="HIGH_PRIORITY" />
+                    </span>
+                  )}
                 </td>
-                <td className="px-4 py-2 text-gray-600">{p.pm.name}</td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-3 text-gray-600">
+                  <div className="flex items-center gap-1.5">
+                    <Avatar name={p.pm.name} size={20} />
+                    {p.pm.name}
+                  </div>
+                </td>
+                <td className="px-4 py-3">
                   <StatusBadge status={p.status} />
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-3">
                   <div className="flex flex-wrap gap-1">
                     {p.disciplineReviews.map((r) => (
                       <span key={r.id} className="rounded bg-gray-100 px-1.5 py-0.5 text-[11px] text-gray-600">
@@ -45,7 +57,7 @@ export function ProjectTable({ projects }: { projects: ProjectRow[] }) {
                     {p.disciplineReviews.length === 0 && <span className="text-xs text-gray-400">—</span>}
                   </div>
                 </td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-3">
                   {pendingReview ? <SlaTimer since={pendingReview.lastStatusChangeAt} active /> : "—"}
                 </td>
               </tr>

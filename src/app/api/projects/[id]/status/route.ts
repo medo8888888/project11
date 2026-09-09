@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     }
 
     const wasApprovalTransition = status === "APPROVED";
-    const updated = await transitionProjectStatus(params.id, status);
+    const updated = await transitionProjectStatus(params.id, status, pm.id);
 
     if (wasApprovalTransition) {
       const reviews = await prisma.disciplineReview.findMany({

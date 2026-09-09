@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Check, X, LoaderCircle } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 export function ReviewActions({
   reviewId,
@@ -12,6 +13,7 @@ export function ReviewActions({
   token?: string;
   onDone: (decision: "APPROVED" | "REJECTED") => void;
 }) {
+  const { push } = useToast();
   const [comments, setComments] = useState("");
   const [loading, setLoading] = useState<"APPROVED" | "REJECTED" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -28,8 +30,10 @@ export function ReviewActions({
     setLoading(null);
     if (!res.ok) {
       setError(data.error ?? "Failed to submit review");
+      push(data.error ?? "Failed to submit review", "error");
       return;
     }
+    push(decision === "APPROVED" ? "Review approved" : "Sent back for changes");
     onDone(decision);
   }
 
@@ -40,14 +44,14 @@ export function ReviewActions({
         onChange={(e) => setComments(e.target.value)}
         placeholder="Comments (optional)"
         rows={3}
-        className="w-full rounded-md border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+        className="input resize-none"
       />
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
       <div className="flex gap-2">
         <button
           onClick={() => act("APPROVED")}
           disabled={loading !== null}
-          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-60"
+          className="btn flex-1 bg-emerald-600 text-white hover:bg-emerald-700"
         >
           {loading === "APPROVED" ? <LoaderCircle className="animate-spin" size={16} /> : <Check size={16} />}
           Approve
@@ -55,7 +59,7 @@ export function ReviewActions({
         <button
           onClick={() => act("REJECTED")}
           disabled={loading !== null}
-          className="flex flex-1 items-center justify-center gap-2 rounded-md bg-red-600 px-3 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-60"
+          className="btn-danger flex-1"
         >
           {loading === "REJECTED" ? <LoaderCircle className="animate-spin" size={16} /> : <X size={16} />}
           Request Changes

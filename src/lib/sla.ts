@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
 import { createMagicToken, magicLinkUrl } from "@/lib/magicToken";
 import { notify, nudgeMessage, escalationMessage } from "@/lib/notifications";
+import { logActivity } from "@/lib/activity";
+import { DISCIPLINE_LABEL } from "@/lib/labels";
 
 const TWO_HOURS_MS = 1000 * 60 * 60 * 2;
 const TWO_DAYS_MS = 1000 * 60 * 60 * 24 * 2;
@@ -55,6 +57,13 @@ export async function runSlaCheck(): Promise<SlaRunSummary> {
           where: { id: review.id },
           data: { escalation2dSent: true, nudge2hSent: true, priority: "HIGH_PRIORITY" },
         });
+        await logActivity(prisma, {
+          projectId: review.projectId,
+          type: "SLA_ESCALATION",
+          message: `${DISCIPLINE_LABEL[review.discipline]} review is 2+ days overdue — escalated to ${recipients
+            .map((r) => r.name)
+            .join(" and ")}`,
+        });
         summary.escalationsSent += 1;
         continue;
       }
@@ -69,6 +78,13 @@ export async function runSlaCheck(): Promise<SlaRunSummary> {
         await prisma.disciplineReview.update({
           where: { id: review.id },
           data: { nudge2hSent: true },
+        });
+        await logActivity(prisma, {
+          projectId: review.projectId,
+          type: "SLA_NUDGE",
+          message: `2h reminder sent to ${review.reviewer?.name ?? "the assigned reviewer"} for ${
+            DISCIPLINE_LABEL[review.discipline]
+          } review`,
         });
         summary.nudgesSent += 1;
       }

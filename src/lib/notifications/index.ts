@@ -3,16 +3,26 @@ import { sendWhatsApp } from "./whatsapp";
 
 export { sendEmail, sendWhatsApp };
 
-type Recipient = { name: string; email: string; phone?: string | null };
+type Recipient = {
+  name: string;
+  email: string;
+  phone?: string | null;
+  notifyEmail?: boolean;
+  notifyWhatsapp?: boolean;
+};
 
 /**
  * Fires both channels in parallel and never lets one failure block the other —
- * SLA reminders are best-effort delivery, not a transaction.
+ * SLA reminders are best-effort delivery, not a transaction. Recipients can opt
+ * out of a channel via notifyEmail/notifyWhatsapp (defaults to opted-in).
  */
 export async function notify(recipient: Recipient, subject: string, htmlBody: string, textBody: string) {
+  const wantsEmail = recipient.notifyEmail !== false;
+  const wantsWhatsapp = recipient.notifyWhatsapp !== false && Boolean(recipient.phone);
+
   const results = await Promise.allSettled([
-    sendEmail(recipient.email, subject, htmlBody),
-    recipient.phone ? sendWhatsApp(recipient.phone, textBody) : Promise.resolve(null),
+    wantsEmail ? sendEmail(recipient.email, subject, htmlBody) : Promise.resolve(null),
+    wantsWhatsapp ? sendWhatsApp(recipient.phone!, textBody) : Promise.resolve(null),
   ]);
 
   results.forEach((r, i) => {

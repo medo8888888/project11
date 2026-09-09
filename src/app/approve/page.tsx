@@ -2,9 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { ClipboardCheck, LoaderCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
+import { ClipboardCheck, LoaderCircle, AlertTriangle, CheckCircle2, Wrench, FlameKindling } from "lucide-react";
 import { ReviewActions } from "@/components/ReviewActions";
 import { StatusBadge } from "@/components/StatusBadge";
+import { Avatar } from "@/components/ui/Avatar";
 
 type Resolution = {
   user: { name: string; role: string };
@@ -12,11 +13,16 @@ type Resolution = {
   review: { id: string; discipline: string; status: string } | null;
 };
 
+const DISCIPLINE_ICON: Record<string, typeof Wrench> = {
+  MECHANICAL: Wrench,
+  FIRE_SAFETY: FlameKindling,
+};
+
 export default function ApprovePage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <div className="flex min-h-screen items-center justify-center bg-mesh-light bg-gray-50">
           <LoaderCircle className="animate-spin text-gray-400" />
         </div>
       }
@@ -47,61 +53,79 @@ function ApprovePageInner() {
       .catch((e) => setError(e.message));
   }, [token]);
 
+  const DisciplineIcon = data?.review ? DISCIPLINE_ICON[data.review.discipline] : undefined;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-10">
-      <div className="w-full max-w-md rounded-xl border bg-white p-6 shadow-sm">
-        <div className="mb-5 flex items-center gap-2 text-brand-700">
-          <ClipboardCheck size={22} />
-          <span className="text-sm font-semibold">Discipline Review</span>
+    <div className="flex min-h-screen items-center justify-center bg-mesh-light bg-gray-50 px-4 py-10">
+      <div className="w-full max-w-md animate-slide-up">
+        <div className="mb-5 flex items-center justify-center gap-2 text-gray-500">
+          <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-gradient text-white">
+            <ClipboardCheck size={15} />
+          </span>
+          <span className="text-sm font-semibold text-gray-700">Bright</span>
         </div>
 
-        {error && (
-          <div className="flex flex-col items-center gap-2 py-10 text-center text-gray-600">
-            <AlertTriangle className="text-red-500" size={28} />
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
-
-        {!error && !data && (
-          <div className="flex justify-center py-10 text-gray-400">
-            <LoaderCircle className="animate-spin" />
-          </div>
-        )}
-
-        {data && !done && (
-          <div className="flex flex-col gap-4">
-            <div>
-              <p className="text-xs text-gray-400">Hi {data.user.name},</p>
-              <h1 className="text-lg font-semibold">{data.project.title}</h1>
-              <p className="mt-1 whitespace-pre-wrap text-sm text-gray-600">{data.project.description}</p>
+        <div className="card p-6">
+          {error && (
+            <div className="flex flex-col items-center gap-2 py-10 text-center text-gray-600">
+              <AlertTriangle className="text-red-500" size={28} />
+              <p className="text-sm">{error}</p>
             </div>
-            <div className="flex items-center gap-2">
-              <StatusBadge status={data.project.status} />
-              {data.review && <span className="text-xs text-gray-500">{data.review.discipline.replace("_", " ")} review</span>}
+          )}
+
+          {!error && !data && (
+            <div className="flex justify-center py-10 text-gray-400">
+              <LoaderCircle className="animate-spin" />
             </div>
+          )}
 
-            {data.review && data.review.status !== "PENDING" ? (
-              <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-500">
-                This review has already been decided ({data.review.status.toLowerCase()}).
-              </p>
-            ) : data.review ? (
-              <ReviewActions reviewId={data.review.id} token={token ?? undefined} onDone={setDone} />
-            ) : (
-              <p className="rounded-md bg-gray-50 p-3 text-sm text-gray-500">
-                This link isn't tied to a specific review.
-              </p>
-            )}
-          </div>
-        )}
+          {data && !done && (
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Avatar name={data.user.name} size={20} /> Hi {data.user.name},
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">{data.project.title}</h1>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-gray-600">
+                  {data.project.description}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status={data.project.status} />
+                {data.review && (
+                  <span className="chip bg-gray-100 text-gray-600">
+                    {DisciplineIcon && <DisciplineIcon size={12} />}
+                    {data.review.discipline.replace("_", " ")} review
+                  </span>
+                )}
+              </div>
 
-        {done && (
-          <div className="flex flex-col items-center gap-2 py-10 text-center">
-            <CheckCircle2 className="text-emerald-600" size={32} />
-            <p className="text-sm font-medium">
-              Review {done === "APPROVED" ? "approved" : "sent back for changes"}. Thank you.
-            </p>
-          </div>
-        )}
+              {data.review && data.review.status !== "PENDING" ? (
+                <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-500">
+                  This review has already been decided ({data.review.status.toLowerCase()}).
+                </p>
+              ) : data.review ? (
+                <ReviewActions reviewId={data.review.id} token={token ?? undefined} onDone={setDone} />
+              ) : (
+                <p className="rounded-lg bg-gray-50 p-3 text-sm text-gray-500">
+                  This link isn't tied to a specific review.
+                </p>
+              )}
+            </div>
+          )}
+
+          {done && (
+            <div className="flex flex-col items-center gap-2 py-10 text-center">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+                <CheckCircle2 size={26} />
+              </span>
+              <p className="text-sm font-medium text-gray-900">
+                Review {done === "APPROVED" ? "approved" : "sent back for changes"}
+              </p>
+              <p className="text-xs text-gray-400">Thank you — you can close this page.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

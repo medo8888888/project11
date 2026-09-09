@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { LoaderCircle } from "lucide-react";
+import { LoaderCircle, FolderPlus } from "lucide-react";
+import { useToast } from "@/components/ui/Toast";
 
 export function NewProjectForm() {
   const router = useRouter();
+  const { push } = useToast();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -26,39 +28,36 @@ export function NewProjectForm() {
       setError(data.error ?? "Failed to create project");
       return;
     }
+    push("Project submitted");
     router.push(`/projects/${data.project.id}`);
   }
 
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4 rounded-lg border bg-white p-6 shadow-sm">
+    <form onSubmit={submit} className="card flex flex-col gap-4 p-6">
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Title</label>
+        <label className="mb-1.5 block text-xs font-medium text-gray-600">Title</label>
         <input
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-md border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="input"
           placeholder="e.g. Warehouse Retrofit - Building 4"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium text-gray-700">Description</label>
+        <label className="mb-1.5 block text-xs font-medium text-gray-600">Description</label>
         <textarea
           required
           rows={5}
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          className="w-full rounded-md border px-3 py-2 text-sm focus:border-brand-500 focus:outline-none focus:ring-1 focus:ring-brand-500"
+          className="input resize-none"
           placeholder="Scope, location, relevant details..."
         />
       </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex items-center justify-center gap-2 rounded-md bg-brand-600 px-3 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-60"
-      >
-        {loading && <LoaderCircle className="animate-spin" size={16} />}
+      {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+      <button type="submit" disabled={loading} className="btn-primary">
+        {loading ? <LoaderCircle className="animate-spin" size={16} /> : <FolderPlus size={16} />}
         Submit Project
       </button>
     </form>
